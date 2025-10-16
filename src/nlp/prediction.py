@@ -1,6 +1,6 @@
 import pandas as pd
 import joblib
-from pre_processamento import preprocess_dataframe
+from src.nlp.preprocess import preprocess_dataframe
 
 def predict_file(csv_path, out_path="Projeto-NPL-Analise-Sentimento-Twittes/data/generate/predictions.csv"):
     model = joblib.load("Projeto-NPL-Analise-Sentimento-Twittes/models/modelo_sentimento.pkl")

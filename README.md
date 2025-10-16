@@ -23,18 +23,28 @@ Projeto de **classificação de sentimento** aplicado a tweets. O objetivo é id
 ```
 projeto-nlp-sentimento/
 ├── data/
-│   ├── raw/twitter_training.csv        # Arquivo CSV utilizado
-│   ├── raw/twitter_validation.csv      # Arquivo CSV para validação
-│   └── generate/predictions.csv        # Arquivo CSV com predições
+│   ├── raw/twitter_training.csv                # Arquivo CSV utilizado
+│   ├── raw/twitter_validation.csv              # Arquivo CSV para validação
+│   └── generate/predictions.csv                # Arquivo CSV com predições
 ├── notebooks/
-│   ├── eda_nlp.ipynb                   # Notebook com análise exploratória
-│   └── modelagem_nlp.ipynb             # Notebook com modelagem
+│   ├── eda_nlp.ipynb                           # Notebook com análise exploratória
+│   └── modelagem_nlp.ipynb                     # Notebook com modelagem
 ├── src/
-│   ├── pre-processamento.py            # Funções de pré-processamento
-│   ├── predicao.py                     # Script para gerar predições
-│   └── api.py                          # API para inferência            
+│   ├── api/
+│   │    ├── main.py                            # Inicia o servidor FastAPI
+│   │    ├── routes.py                          # Define as rotas de inferência
+│   │    ├── models.py                          # Carrega o modelo e faz predições
+│   │    ├── services.py                        # Lógica de predição com o modelo
+│   │    └── utils.py                           # Funções utilitárias para pré-processamento e form
+│   ├── nlp/
+│   │    ├── preprocess.py                      # Funções de pré-processamento de texto
+│   │    ├── prediction.py                      # Função para fazer predições
+│   │    ├── sentiment_model.py                 # Função para treinar e salvar o modelo
+│   │    └── visualization.py                   # Funções para gerar visualizações (wordclouds)
+│   └── ui/
+│        └── app.py                             # Interface Streamlit  
 ├── models/
-│   └── modelo_sentimento.pkl           # Modelo treinado salvo
+│   └── modelo_sentimento.pkl                   # Modelo treinado salvo
 ├── assets/
 │   ├── curva_ROC.png                           # Curva ROC do modelo
 │   ├── distribuicao_classes_sentimentos.png    # Distribuição das classes
@@ -43,8 +53,11 @@ projeto-nlp-sentimento/
 │   ├── nuvem_palavras_negativas.png            # Nuvem de palavras negativas
 │   ├── nuvem_palavras_positivas.png            # Nuvem de palavras positivas
 │   └── palavras_frequentes.png                 # Palavras mais frequentes
-├── requirements.txt                    # Dependências do projeto 
-└── README.md                           # Documentação do projeto
+├── docker-compose.yml                          # Orquestra os containers API + UI
+├── Dockerfile.api                              # Dockerfile da API FastAPI
+├── Dockerfile.ui                               # Dockerfile da UI Streamlit
+├── requirements.txt                            # Dependências do projeto 
+└── README.md                                   # Documentação do projeto
 ```
 
 ## 🔧 Ferramentas Utilizadas
@@ -56,7 +69,8 @@ projeto-nlp-sentimento/
 - **WordCloud / NLTK** – Processamento de linguagem natural
 - **Matplotlib / Seaborn / WordCloud** – Visualização de dados
 - **Jupyter Notebook** – Documentação da análise
-
+- **Streamlit** – Interface web para análise interativa
+- **Docker / Docker Compose** – Containerização e orquestração
 ---
 
 ## 📊 Principais Insights
@@ -141,3 +155,48 @@ python src/api.py
 uvicorn src.api:app --reload --port 8000
 ```
 
+## 🚀 Novas Funcionalidades Implementadas
+
+### 🧠 **API de Inferência (FastAPI)**
+- Endpoints:
+  - `POST /analise/` → analisa texto individual e retorna:
+    - `prediction`: sentimento detectado.
+    - `probabilities`: lista com 4 probabilidades (`Negative`, `Neutral`, `Mixed`, `Positive`).
+  - `POST /analise/lote/` → aceita upload de CSV (com coluna `text`) e retorna análise em lote.
+- Retorno em formato JSON, pronto para consumo via front-end ou integrações externas.
+
+### 💻 **Interface Web (Streamlit UI)**
+- Interface moderna e responsiva para uso direto no navegador.
+- **Análise individual**: insira texto e veja o sentimento e probabilidades em tempo real.
+- **Análise em lote (CSV)**: upload de arquivo e visualização dos resultados diretamente na tela.
+- Download dos resultados com apenas um clique.
+- Visualização das probabilidades em **gráficos de barras**.
+
+### ☁️ **Nuvem de Palavras com Cores por Sentimento**
+- Para a análise em lote, o sistema gera **wordclouds coloridas** por sentimento:
+  - 🟢 **Positivo**
+  - 🔴 **Negativo**
+  - 🟠 **Neutro**
+  - 🔵 **Misto**
+- Permite análise visual rápida dos termos mais comuns associados a cada emoção.
+
+### 🐳 **Containerização com Docker**
+- Ambiente totalmente isolado e pronto para deploy local ou em nuvem.
+- Containers separados:
+  - `api` → serviço FastAPI
+  - `ui` → interface Streamlit
+- Orquestração via **docker-compose**:
+  - Comunicação entre serviços via rede interna (`nlpnet`).
+  - `API_URL` configurada automaticamente.
+- Build otimizado com **cache inteligente** e instalação de dependências em camadas.
+
+## 🧩 Como Executar com Docker
+
+### 1️⃣ Build e subida dos containers
+
+```bash
+docker compose up --build
+```
+- API → disponível em http://localhost:8000
+
+- UI → disponível em http://localhost:8501
